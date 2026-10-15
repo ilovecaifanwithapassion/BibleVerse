@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bible App</title>
+  <meta name="description"
+    content="A peaceful, responsive Christian Bible study platform featuring New International Version (NIV) Scripture, reliable historical study tools, reading plans, and personal prayer journals.">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reader.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- =========================================================================
+       SITE HEADER & DESKTOP NAVIGATION
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand" id="brand-logo" onclick="AppRouter.navigate('home')">
+        <div class="brand-icon">
+          <i data-lucide="book-marked"></i>
+        </div>
+        <span class="brand-title">Bible App</span>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="main-nav" aria-label="Main Navigation">
+        <a href="#home" class="nav-link active" data-view="home" id="nav-home">
+          <i data-lucide="sun" class="nav-icon"></i> Daily Verse
+        </a>
+        <a href="#reader" class="nav-link" data-view="reader" id="nav-reader">
+          <i data-lucide="book-open" class="nav-icon"></i> Bible Reader
+        </a>
+        <a href="#study" class="nav-link" data-view="study" id="nav-study">
+          <i data-lucide="compass" class="nav-icon"></i> Study & Context
+        </a>
+        <a href="#plans" class="nav-link" data-view="plans" id="nav-plans">
+          <i data-lucide="calendar" class="nav-icon"></i> Reading Plans
+        </a>
+        <a href="#prayers" class="nav-link" data-view="prayers" id="nav-prayers">
+          <i data-lucide="feather" class="nav-icon"></i> Prayer Journal
+        </a>
+        <a href="#bookmarks" class="nav-link" data-view="bookmarks" id="nav-bookmarks">
+          <i data-lucide="bookmark" class="nav-icon"></i> Saved Notes
+        </a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <button class="btn-icon" id="search-modal-btn" title="Search Scripture" aria-label="Search Scripture">
+          <i data-lucide="search"></i>
+        </button>
+        <button class="btn-icon" id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <i data-lucide="moon" id="theme-icon"></i>
+        </button>
+        <button class="auth-badge" id="auth-status-btn" title="Account / Profile">
+          <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+          <span id="auth-status-label">Guest</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MAIN APPLICATION VIEWS
+       ========================================================================= -->
+  <main class="app-main">
+
+    <!-- 1. HOME / DAILY VERSE VIEW -->
+    <section id="view-home" class="app-view active">
+      <div class="container container-readable">
+        <!-- Daily Verse Hero Card -->
+        <div class="hero-verse-card">
+          <div class="hero-badge">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Daily Verse
+          </div>
+          <blockquote class="hero-verse-quote" id="daily-verse-text">
+            "The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures, he leads me beside quiet
+            waters, he refreshes my soul."
+          </blockquote>
+          <div class="hero-verse-ref" id="daily-verse-ref">Psalm 23:1–3 (NIV)</div>
+
+          <!-- Human-written Devotional Reflection -->
+          <div class="hero-reflection-box">
+            <div class="reflection-title" id="daily-reflection-title">The Unfailing Shepherd of Your Soul</div>
+            <p class="reflection-text" id="daily-reflection-text">
+              Loading reflection...
+            </p>
+            <div class="reflection-prayer" id="daily-reflection-prayer">
+              "Good Shepherd, guide my footsteps along paths of righteousness today. Amen."
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btn-read-verse-context">
+              <i data-lucide="book-open"></i> Read Full Chapter
+            </button>
+            <button class="btn btn-secondary" id="btn-save-daily-verse">
+              <i data-lucide="bookmark"></i> Bookmark Verse
+            </button>
+            <button class="btn btn-secondary" id="btn-share-daily-verse">
+              <i data-lucide="share-2"></i> Copy & Share
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Resume & Stats Bar -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 36px;">
+          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+            <div
+              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              Continue Reading</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;" id="resume-position-label">Genesis 1
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-resume-reading">
+              <i data-lucide="arrow-right"></i> Open Reader
+            </button>
+          </div>
+
+          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+            <div
+              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              Reading Streak</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;" id="streak-counter-label">1 Day
+              Streak</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">Spend time in God's Word daily</div>
+          </div>
+
+          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+            <div
+              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              Prayer Journal</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;" id="home-prayers-count">0 Active
+              Prayers</div>
+            <button class="btn btn-secondary btn-sm" onclick="AppRouter.navigate('prayers')">
+              <i data-lucide="feather"></i> Open Journal
+            </button>
+          </div>
+        </div>
+
+        <!-- Featured Spiritual Topics -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="heart"></i> Spiritual Growth Topics
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+            Explore curated Scripture selections and reflections organized around foundational Christian themes:
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="topics-badges-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. BIBLE READER VIEW -->
+    <section id="view-reader" class="app-view">
+      <div class="container container-readable reader-wrapper">
+        <!-- Controls Bar -->
+        <div class="reader-controls-bar">
+          <div class="reader-nav-group">
+            <button class="btn-nav-step" id="btn-prev-chapter" title="Previous Chapter" aria-label="Previous Chapter">
+              <i data-lucide="chevron-left"></i>
+            </button>
+            <button class="book-chapter-picker-btn" id="btn-open-picker" title="Select Book and Chapter">
+              <span id="current-book-label">Genesis</span>
+              <span id="current-chapter-label">1</span>
+              <i data-lucide="chevron-down" style="width: 18px; height: 18px;"></i>
+            </button>
+            <button class="btn-nav-step" id="btn-next-chapter" title="Next Chapter" aria-label="Next Chapter">
+              <i data-lucide="chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="reader-settings-group">
+            <!-- Font Size Toggles -->
+            <div class="font-size-toggles" title="Scripture Font Size">
+              <button class="font-size-btn" data-size="sm">A-</button>
+              <button class="font-size-btn active" data-size="md">A</button>
+              <button class="font-size-btn" data-size="lg">A+</button>
+              <button class="font-size-btn" data-size="xl">A++</button>
+            </div>
+
+            <!-- Layout Toggle -->
+            <button class="layout-toggle-btn" id="btn-toggle-layout" title="Toggle Verse-by-Verse / Paragraph Layout">
+              <i data-lucide="align-left" id="layout-icon"></i>
+              <span id="layout-label">Verse Mode</span>
+            </button>
+
+            <!-- Section Headings Toggle -->
+            <button class="layout-toggle-btn active" id="btn-toggle-headings"
+              title="Toggle Section Titles in Scripture">
+              <i data-lucide="heading"></i>
+              <span id="headings-label">Headings: On</span>
+            </button>
+
+            <!-- Book Study Quick Link -->
+            <button class="btn-icon" id="btn-reader-open-study" title="Study this chapter's context">
+              <i data-lucide="compass"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Scripture Card -->
+        <div class="scripture-card" id="scripture-container">
+          <!-- Chapter Header with Document Styling -->
+          <div class="chapter-header">
+            <h1 class="chapter-title" id="reader-heading">Genesis 1</h1>
+            <div class="chapter-divider-line"></div>
+            <div class="chapter-meta">
+              <span class="translation-badge">New International Version (NIV)</span>
+              <span id="reader-book-testament">Old Testament</span>
+              <span>•</span>
+              <span id="reader-verses-count">31 Verses</span>
+            </div>
+          </div>
+
+          <!-- Scripture Text Render Target -->
+          <div class="scripture-text font-md layout-paragraph" id="scripture-verses-body">
+            <!-- Verses rendered here -->
+            <div class="empty-state">
+              <div class="empty-state-icon"><i data-lucide="loader"></i></div>
+              <div class="empty-state-title">Loading Scripture...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chapter Navigation Footer -->
+        <div class="chapter-nav-footer">
+          <div class="chapter-nav-card prev" id="card-nav-prev">
+            <i data-lucide="arrow-left"></i>
+            <div>
+              <div class="nav-direction-label">Previous Chapter</div>
+              <div class="nav-chapter-target" id="prev-target-label">---</div>
+            </div>
+          </div>
+          <div class="chapter-nav-card next" id="card-nav-next">
+            <div>
+              <div class="nav-direction-label">Next Chapter</div>
+              <div class="nav-chapter-target" id="next-target-label">---</div>
+            </div>
+            <i data-lucide="arrow-right"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BIBLE STUDY & CROSS-REFERENCES VIEW (NO AI) -->
+    <section id="view-study" class="app-view">
+      <div class="container container-readable" style="padding-top: 24px;">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Scripture Study & Verified Context</h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Explore prewritten historical backgrounds, original Hebrew and Greek terms, Matthew Henry’s commentary, and
+            Treasury of Scripture Knowledge cross-references. <em>(Strictly non-AI, verified theological
+              scholarship)</em>.
+          </p>
+        </div>
+
+        <!-- Book Background Selector Bar -->
+        <div class="study-section-card" style="padding: 18px 24px;">
+          <label class="form-label">Select Book for Historical & Cultural Background:</label>
+          <select class="form-select" id="study-book-dropdown" style="max-width: 320px;">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <!-- Historical Background Card -->
+        <div class="study-section-card" id="book-background-card">
+          <div class="study-section-title">
+            <i data-lucide="landmark"></i>
+            <span id="study-book-name">Genesis</span>: Historical & Cultural Context
+          </div>
+          <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Author:</strong>
+              <span id="study-book-author" style="font-size: 0.95rem;">Moses</span>
+            </div>
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Date of Writing:</strong>
+              <span id="study-book-date" style="font-size: 0.95rem;">c. 1446–1406 B.C.</span>
+            </div>
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Original
+                Audience:</strong>
+              <span id="study-book-audience" style="font-size: 0.95rem;">Israelites in the wilderness</span>
+            </div>
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Literary Genre:</strong>
+              <span id="study-book-genre" style="font-size: 0.95rem;">Theological Narrative</span>
+            </div>
+          </div>
+          <div style="margin-bottom: 14px;">
+            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Central
+              Purpose:</strong>
+            <p id="study-book-purpose" style="font-size: 0.95rem; color: var(--text-secondary);"></p>
+          </div>
+          <div>
+            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 4px;">Major
+              Themes:</strong>
+            <div id="study-book-themes" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+          </div>
+        </div>
+
+        <!-- Original Language (Hebrew / Greek) Lexicon -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="languages"></i> Biblical Languages (Hebrew & Greek Lexicon)
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+            Key biblical terms defined using Strong's Concordance numbering, root morphology, and theological
+            significance.
+          </p>
+          <div class="lexicon-grid" id="lexicon-terms-container">
+            <!-- Lexicon cards injected via JS -->
+          </div>
+        </div>
+
+        <!-- Treasury of Scripture Knowledge Cross-References -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="git-fork"></i> Treasury of Scripture Knowledge Cross-References
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+            Connections between Old Testament prophetic promises and New Testament fulfillments.
+          </p>
+          <div id="cross-references-container" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Historical Commentary Insights (Matthew Henry) -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="book-check"></i> Published Commentaries (Matthew Henry, Public Domain)
+          </div>
+          <div id="commentary-notes-container">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Theological Frameworks & Differing Interpretations -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="scales"></i> Perspectives on Christian Interpretation
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+            Fair and balanced overview of major orthodox interpretive frameworks in church history:
+          </p>
+          <div id="theological-topics-container">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. READING PLANS VIEW -->
+    <section id="view-plans" class="app-view">
+      <div class="container" style="padding-top: 24px;">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Structured Reading Plans</h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Follow structured daily reading paths through books of the Bible or focused spiritual topics to foster
+            consistency and growth.
+          </p>
+        </div>
+
+        <div class="plans-grid" id="plans-grid-container">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Plan Detail / Checklist Container (When a plan is selected) -->
+        <div id="plan-detail-modal" class="modal-backdrop">
+          <div class="modal-dialog" style="max-width: 720px;">
+            <div class="modal-header">
+              <div>
+                <h3 class="modal-title" id="plan-detail-title">Plan Name</h3>
+                <span id="plan-detail-meta" style="font-size: 0.82rem; color: var(--text-muted);">21 Days</span>
+              </div>
+              <button class="btn-icon" onclick="AppUI.closeModal('plan-detail-modal')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="plan-days-checklist">
+              <!-- Days checklist populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PRAYER JOURNAL VIEW -->
+    <section id="view-prayers" class="app-view">
+      <div class="container" style="padding-top: 24px;">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+          <div>
+            <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Personal Prayer Journal</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+              Bring your petitions and thanksgivings before God. Track answered prayers as lasting monuments of His
+              faithfulness.
+            </p>
+          </div>
+          <button class="btn btn-primary" id="btn-open-add-prayer">
+            <i data-lucide="plus"></i> New Prayer Request
+          </button>
+        </div>
+
+        <!-- Tabs Filter -->
+        <div class="prayer-tabs">
+          <button class="prayer-tab-btn active" data-filter="all">All Prayers (<span
+              id="count-all-prayers">0</span>)</button>
+          <button class="prayer-tab-btn" data-filter="active">Active Petitions (<span
+              id="count-active-prayers">0</span>)</button>
+          <button class="prayer-tab-btn" data-filter="answered">Answered Prayers (<span
+              id="count-answered-prayers">0</span>)</button>
+        </div>
+
+        <!-- Prayers Grid -->
+        <div class="prayer-grid" id="prayers-grid-container">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. BOOKMARKS & NOTES VIEW -->
+    <section id="view-bookmarks" class="app-view">
+      <div class="container container-readable" style="padding-top: 24px;">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Saved Bookmarks & Personal Notes</h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Access all your marked Scripture verses and reflections across the Old and New Testaments.
+          </p>
+        </div>
+
+        <div class="prayer-tabs">
+          <button class="prayer-tab-btn active" id="tab-btn-bookmarks">Bookmarks (<span
+              id="count-bookmarks">0</span>)</button>
+          <button class="prayer-tab-btn" id="tab-btn-notes">Personal Notes (<span id="count-notes">0</span>)</button>
+          <button class="prayer-tab-btn" id="tab-btn-highlights">Highlights (<span
+              id="count-highlights">0</span>)</button>
+        </div>
+
+        <div id="saved-items-container" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. SETTINGS & PROFILE VIEW -->
+    <section id="view-settings" class="app-view">
+      <div class="container container-readable" style="padding-top: 24px;">
+        <div style="margin-bottom: 24px;">
+          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Settings & Account</h1>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Configure your reading preferences, Supabase database synchronization, and Scripture data providers.
+          </p>
+        </div>
+
+        <!-- Account Status Card -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="user-check"></i> Account Status
+          </div>
+          <div id="account-status-details">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Scripture Provider Configuration -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="database"></i> Scripture Data Provider
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+            NIV Scripture can be loaded from the configured GitHub source or connected to an authorized licensed API
+            provider.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Active Provider:</label>
+            <select class="form-select" id="setting-scripture-provider">
+              <option value="github">GitHub Raw Repository (aruljohn/Bible-niv)</option>
+              <option value="api_bible">Authorized API.Bible Endpoint (Requires Licensed NIV Key)</option>
+            </select>
+          </div>
+          <div class="form-group" id="api-bible-fields" style="display: none;">
+            <label class="form-label">API.Bible Key:</label>
+            <input type="password" class="form-input" id="setting-api-bible-key"
+              placeholder="Enter your authorized API key">
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-save-provider-settings">Save Provider Setting</button>
+        </div>
+
+        <!-- Supabase Configuration -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="cloud"></i> Supabase Database Synchronization
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+            Connect your own Supabase project URL and Anon Key to enable multi-device synchronization with PostgreSQL
+            Row-Level Security.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Supabase URL:</label>
+            <input type="text" class="form-input" id="setting-supabase-url"
+              placeholder="https://your-project.supabase.co">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Supabase Anon Key:</label>
+            <input type="password" class="form-input" id="setting-supabase-key"
+              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary btn-sm" id="btn-save-supabase-config">Save Credentials & Connect</button>
+            <button class="btn btn-secondary btn-sm" id="btn-clear-supabase-config">Clear & Return to Guest</button>
+          </div>
+        </div>
+
+        <!-- Reading Appearance Settings -->
+        <div class="study-section-card">
+          <div class="study-section-title">
+            <i data-lucide="sliders"></i> Reading Preferences
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Scripture Font Size:</label>
+            <select class="form-select" id="setting-default-font-size">
+              <option value="sm">Small (17px)</option>
+              <option value="md" selected>Medium (20px - Default)</option>
+              <option value="lg">Large (23px)</option>
+              <option value="xl">Extra Large (26px)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Layout Mode:</label>
+            <select class="form-select" id="setting-default-layout">
+              <option value="paragraph">Paragraph Reading (Standard)</option>
+              <option value="verse">Verse-by-Verse (Study mode)</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-save-reading-prefs">Save Preferences</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       FLOATING ACTION PALETTE (ON VERSE CLICK)
+       ========================================================================= -->
+  <div class="verse-action-bar" id="verse-action-bar">
+    <span class="action-bar-label" id="action-bar-verse-ref">John 3:16</span>
+    <div class="highlight-color-picker" title="Highlight Color">
+      <div class="color-dot yellow" data-color="yellow" title="Highlight Yellow"></div>
+      <div class="color-dot green" data-color="green" title="Highlight Green"></div>
+      <div class="color-dot blue" data-color="blue" title="Highlight Blue"></div>
+      <div class="color-dot purple" data-color="purple" title="Highlight Purple"></div>
+      <div class="color-dot rose" data-color="rose" title="Highlight Rose"></div>
+      <div class="color-dot clear" data-color="none" title="Remove Highlight">✕</div>
+    </div>
+    <button class="action-bar-btn" id="action-btn-custom-title"><i data-lucide="heading"></i> Title</button>
+    <button class="action-bar-btn" id="action-btn-note"><i data-lucide="edit-3"></i> Note</button>
+    <button class="action-bar-btn" id="action-btn-bookmark"><i data-lucide="bookmark"></i> Bookmark</button>
+    <button class="action-bar-btn" id="action-btn-copy"><i data-lucide="copy"></i> Copy</button>
+    <button class="action-bar-btn" id="action-btn-study"><i data-lucide="compass"></i> Study</button>
+    <button class="btn-icon" id="action-btn-close" style="width: 28px; height: 28px;"><i data-lucide="x"></i></button>
+  </div>
+
+  <!-- =========================================================================
+       MODALS: BOOK PICKER, SEARCH, NOTE EDITOR, PRAYER EDITOR, AUTH
+       ========================================================================= -->
+
+  <!-- 1. Book & Chapter Picker Modal -->
+  <div class="modal-backdrop" id="modal-book-picker">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Select Book & Chapter</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-book-picker')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="picker-tabs">
+        <div class="picker-tab active" id="tab-ot" onclick="AppUI.switchTestamentTab('OT')">Old Testament (39)</div>
+        <div class="picker-tab" id="tab-nt" onclick="AppUI.switchTestamentTab('NT')">New Testament (27)</div>
+      </div>
+      <div class="modal-body">
+        <!-- Step 1: Books Grid -->
+        <div id="picker-books-step">
+          <div class="books-grid" id="picker-books-grid">
+            <!-- Books injected via JS -->
+          </div>
+        </div>
+
+        <!-- Step 2: Chapters Grid (hidden until book chosen) -->
+        <div id="picker-chapters-step" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <button class="btn btn-secondary btn-sm" id="btn-back-to-books">
+              <i data-lucide="arrow-left"></i> Back to Books
+            </button>
+            <h4 id="picker-selected-book-name" style="color: var(--text-primary); font-size: 1.1rem; font-weight: 700;">
+              Genesis</h4>
+          </div>
+          <div class="chapters-grid" id="picker-chapters-grid">
+            <!-- Chapters injected via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Search Scripture Modal -->
+  <div class="modal-backdrop" id="modal-search">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Search NIV Scripture</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-search')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <input type="text" class="form-input" id="search-input"
+            placeholder="Type a reference (e.g. John 3:16, Romans 8) or keyword (peace, shepherd)..." autofocus>
+        </div>
+        <div id="search-hints" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+          Try references like: <strong>John 3:16</strong>, <strong>Romans 8:28</strong>, <strong>Psalm 23</strong>, or
+          search words like <em>"grace"</em>, <em>"anxiety"</em>, <em>"love"</em>.
+        </div>
+        <div id="search-results-container" class="search-results-list">
+          <!-- Search results here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Note Editor Modal -->
+  <div class="modal-backdrop" id="modal-note-editor">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="note-modal-title">Add Note to Verse</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-note-editor')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background-color: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px; font-family: var(--font-scripture); font-size: 0.92rem;"
+          id="note-verse-preview">
+          "For God so loved the world..."
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personal Reflection or Study Note:</label>
+          <textarea class="form-textarea" id="note-text-input"
+            placeholder="Record your thoughts, prayers, or cross-references here..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="AppUI.closeModal('modal-note-editor')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-note">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Prayer Request Editor Modal -->
+  <div class="modal-backdrop" id="modal-prayer-editor">
+    <div class="modal-dialog" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="prayer-modal-title">New Prayer Request</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-prayer-editor')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Prayer Title:</label>
+          <input type="text" class="form-input" id="prayer-title-input"
+            placeholder="e.g. Healing for Mom, Guidance in Career...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category:</label>
+          <select class="form-select" id="prayer-category-input">
+            <option value="Petition">Petition (Personal Need)</option>
+            <option value="Intercession">Intercession (For Others)</option>
+            <option value="Thanksgiving">Thanksgiving & Gratitude</option>
+            <option value="Praise">Praise & Adoration</option>
+            <option value="Confession">Confession & Repentance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prayer Details:</label>
+          <textarea class="form-textarea" id="prayer-request-input"
+            placeholder="Pour out your heart before the Lord..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="AppUI.closeModal('modal-prayer-editor')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-prayer-entry">Save Prayer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Mark Prayer as Answered Modal -->
+  <div class="modal-backdrop" id="modal-answer-prayer">
+    <div class="modal-dialog" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Celebrate Answered Prayer</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-answer-prayer')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin-bottom: 14px; font-size: 0.95rem;">
+          How has God answered this prayer? Record your testimony of His faithfulness:
+        </p>
+        <div class="form-group">
+          <textarea class="form-textarea" id="prayer-answer-input"
+            placeholder="Describe how God provided or worked in this situation..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="AppUI.closeModal('modal-answer-prayer')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-confirm-answered-prayer">Mark as Answered</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Auth Modal (Sign in / Sign up) -->
+  <div class="modal-backdrop" id="modal-auth">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="auth-modal-title">Sign In</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-auth')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background-color: var(--mono-soft); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-primary); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+          <i data-lucide="info" style="width: 16px; height: 16px; vertical-align: middle;"></i>
+          <strong>Guest Mode Active:</strong> You can read, highlight, bookmark, and journal freely without signing in.
+          Creating an account syncs your data across devices.
+        </div>
+
+        <form id="auth-form" onsubmit="return false;">
+          <div class="form-group" id="group-display-name" style="display: none;">
+            <label class="form-label">Full Name / Display Name:</label>
+            <input type="text" class="form-input" id="auth-name-input" placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address:</label>
+            <input type="email" class="form-input" id="auth-email-input" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password:</label>
+            <input type="password" class="form-input" id="auth-password-input" placeholder="••••••••" required>
+          </div>
+          <div id="auth-error-msg"
+            style="color: var(--text-primary); font-weight: 700; border: 1px solid var(--border-strong); padding: 8px 12px; font-size: 0.85rem; margin-bottom: 12px; display: none;">
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit-auth"
+            style="width: 100%; margin-bottom: 12px;">Sign In</button>
+        </form>
+
+        <div style="text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+          <span id="auth-toggle-question">Don't have an account?</span>
+          <button style="color: var(--text-primary); font-weight: 700; text-decoration: underline; margin-left: 4px;"
+            id="btn-toggle-auth-mode">Create One</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Custom Verse Title / Heading Modal -->
+  <div class="modal-backdrop" id="modal-verse-title">
+    <div class="modal-dialog" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="verse-title-modal-heading">Add Section Title</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-verse-title')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background-color: var(--bg-secondary); padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;"
+          id="title-verse-preview">
+          Adding section title to verse...
+        </div>
+        <div class="form-group">
+          <label class="form-label">Section Title / Heading Text:</label>
+          <input type="text" class="form-input" id="custom-verse-title-input"
+            placeholder="e.g. The Call of Abraham, Jesus Teaches on Prayer...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="AppUI.closeModal('modal-verse-title')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-custom-title">Save Section Title</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- =========================================================================
+       MOBILE BOTTOM NAVIGATION
+       ========================================================================= -->
+  <nav class="mobile-nav" aria-label="Mobile Navigation">
+    <a href="#home" class="mobile-nav-item active" data-view="home">
+      <i data-lucide="sun" class="mobile-nav-icon"></i>
+      <span>Daily</span>
+    </a>
+    <a href="#reader" class="mobile-nav-item" data-view="reader">
+      <i data-lucide="book-open" class="mobile-nav-icon"></i>
+      <span>Reader</span>
+    </a>
+    <a href="#study" class="mobile-nav-item" data-view="study">
+      <i data-lucide="compass" class="mobile-nav-icon"></i>
+      <span>Study</span>
+    </a>
+    <a href="#plans" class="mobile-nav-item" data-view="plans">
+      <i data-lucide="calendar" class="mobile-nav-icon"></i>
+      <span>Plans</span>
+    </a>
+    <a href="#prayers" class="mobile-nav-item" data-view="prayers">
+      <i data-lucide="feather" class="mobile-nav-icon"></i>
+      <span>Prayers</span>
+    </a>
+    <a href="#bookmarks" class="mobile-nav-item" data-view="bookmarks">
+      <i data-lucide="bookmark" class="mobile-nav-icon"></i>
+      <span>Saved</span>
+    </a>
+  </nav>
+
+  <!-- =========================================================================
+       FOOTER & LEGAL COPYRIGHT ATTRIBUTION
+       ========================================================================= -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="copyright-box">
+        <strong>Scripture Quotation Notice:</strong><br>
+        Scripture quotations taken from the Holy Bible, New International Version®, NIV®.
+        Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission of Zondervan. All rights reserved
+        worldwide.
+      </div>
+      <div>
+        <p>Built for thoughtful reading, biblical context, and spiritual growth. Strictly non-AI commentary & verified
+          scholarship.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       JAVASCRIPT MODULES
+       ========================================================================= -->
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/bible-provider.js"></script>
+  <script src="js/section-headings.js"></script>
+  <script src="js/study-data.js"></script>
+  <script src="js/devotionals-data.js"></script>
+  <script src="js/reading-plans-data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>

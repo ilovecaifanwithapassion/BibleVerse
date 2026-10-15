@@ -1,0 +1,13 @@
+{
+  "name": "bible-verse-study",
+  "version": "1.0.0",
+  "description": "Responsive Bible study website with NIV Scripture, study resources, prayer journal, and reading plans",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["bible", "niv", "bible-study", "prayer-journal", "scripture"],
+  "author": "",
+  "license": "MIT"
+}

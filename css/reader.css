@@ -1,0 +1,561 @@
+/* =============================================================================
+   BIBLE READER STYLES - STRICT BLACK & WHITE MONOCHROME
+   Minimalist editorial typography, high legibility, distraction-free reading.
+   ============================================================================= */
+
+.reader-wrapper {
+  padding: 24px 0 60px;
+}
+
+/* Reader Toolbar Controls */
+.reader-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--bg-card);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.reader-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.book-chapter-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.book-chapter-picker-btn:hover {
+  background-color: var(--mono-soft);
+  border-color: var(--text-primary);
+}
+
+.btn-nav-step {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.btn-nav-step:hover:not(:disabled) {
+  background-color: var(--mono-soft);
+  border-color: var(--text-primary);
+}
+
+.btn-nav-step:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.reader-settings-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.font-size-toggles {
+  display: flex;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+}
+
+.font-size-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.font-size-btn.active {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+.layout-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.layout-toggle-btn:hover {
+  background-color: var(--mono-soft);
+  border-color: var(--text-primary);
+}
+
+.layout-toggle-btn.active {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+
+/* Scripture Reading Area */
+.scripture-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 48px 56px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: all var(--transition-normal);
+}
+
+@media (max-width: 768px) {
+  .scripture-card {
+    padding: 24px 18px;
+  }
+}
+
+.chapter-header {
+  text-align: center;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.chapter-title {
+  font-family: var(--font-ui);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.chapter-divider-line {
+  width: 60px;
+  height: 2px;
+  background-color: var(--text-primary);
+  margin: 12px auto;
+  opacity: 0.8;
+}
+
+.chapter-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: var(--font-ui);
+}
+
+.translation-badge {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.78rem;
+  border: 1px solid var(--border-medium);
+}
+
+/* =============================================================================
+   SECTION HEADINGS IN VERSES (PERICOPES) - MONOCHROME EDITORIAL STYLE
+   ============================================================================= */
+.verse-section-container {
+  display: block;
+  width: 100%;
+  margin-top: 36px;
+  margin-bottom: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.verse-section-container:first-child {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.verse-section-heading {
+  font-family: var(--font-ui);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.3;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.section-tag-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* Custom User-Added Verse Title */
+.verse-custom-title {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 24px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--mono-soft);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--text-primary);
+}
+
+/* Scripture Text Typography & Font Sizing */
+.scripture-text {
+  font-family: var(--font-scripture);
+  color: var(--text-primary);
+  line-height: 1.85;
+}
+
+.scripture-text.font-sm {
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.scripture-text.font-md {
+  font-size: 1.25rem;
+  line-height: 1.85;
+}
+
+.scripture-text.font-lg {
+  font-size: 1.45rem;
+  line-height: 1.95;
+}
+
+.scripture-text.font-xl {
+  font-size: 1.65rem;
+  line-height: 2.05;
+}
+
+/* Layout: Verse-by-Verse vs Paragraph */
+.scripture-text.layout-verse-by-verse .verse-item {
+  display: block;
+  margin-bottom: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.scripture-text.layout-paragraph .verse-item {
+  display: inline;
+  padding: 1px 2px;
+}
+
+/* Individual Verse */
+.verse-item {
+  position: relative;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), outline var(--transition-fast);
+  border-radius: 2px;
+  scroll-margin-top: 120px;
+  scroll-margin-bottom: 120px;
+}
+
+.verse-item:hover {
+  background-color: var(--mono-soft);
+}
+
+.verse-num {
+  font-family: var(--font-ui);
+  font-size: 0.75em;
+  font-weight: 700;
+  color: var(--text-muted);
+  vertical-align: super;
+  margin-right: 4px;
+  user-select: none;
+}
+
+/* Selected Verse State */
+.verse-item.selected {
+  outline: 1.5px solid var(--text-primary);
+  background-color: var(--mono-soft);
+}
+
+/* Target Verse Temporary Emphasis & High-Visibility Outline */
+.verse-item.verse-target-focus {
+  outline: 2px solid var(--text-primary) !important;
+  outline-offset: 4px;
+  border-radius: 3px;
+  background-color: var(--mono-soft);
+  animation: verseTargetPulse 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes verseTargetPulse {
+  0% {
+    outline-color: var(--text-primary);
+    outline-offset: 6px;
+    box-shadow: 0 0 0 6px var(--mono-soft);
+  }
+  35% {
+    outline-color: var(--text-primary);
+    outline-offset: 4px;
+    box-shadow: 0 0 0 4px var(--mono-soft);
+  }
+  75% {
+    outline-color: var(--text-primary);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px var(--mono-soft);
+  }
+  100% {
+    outline-color: transparent;
+    outline-offset: 0px;
+    box-shadow: none;
+  }
+}
+
+/* =============================================================================
+   MONOCHROME HIGHLIGHTING (Subtle shades, underlines, inverted blocks)
+   ============================================================================= */
+/* Tone 1: Light Gray Shade */
+.verse-item.hl-1,
+.verse-item.hl-yellow {
+  background-color: #EEEEEE;
+  box-shadow: 0 0 0 1px #DDDDDD;
+}
+
+[data-theme="dark"] .verse-item.hl-1,
+[data-theme="dark"] .verse-item.hl-yellow {
+  background-color: #222222;
+  box-shadow: 0 0 0 1px #333333;
+}
+
+/* Tone 2: Medium Gray Shade */
+.verse-item.hl-2,
+.verse-item.hl-green {
+  background-color: #DDDDDD;
+  box-shadow: 0 0 0 1px #BBBBBB;
+}
+
+[data-theme="dark"] .verse-item.hl-2,
+[data-theme="dark"] .verse-item.hl-green {
+  background-color: #333333;
+  box-shadow: 0 0 0 1px #555555;
+}
+
+/* Tone 3: Solid Underline */
+.verse-item.hl-3,
+.verse-item.hl-blue {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Tone 4: Dotted Underline */
+.verse-item.hl-4,
+.verse-item.hl-purple {
+  border-bottom: 2px dotted var(--text-primary);
+}
+
+/* Tone 5: Inverted Solid Block */
+.verse-item.hl-5,
+.verse-item.hl-rose {
+  background-color: var(--text-primary);
+  color: var(--bg-primary) !important;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.verse-item.hl-5 .verse-num,
+.verse-item.hl-rose .verse-num {
+  color: var(--bg-primary) !important;
+}
+
+/* Note Indicator Badge */
+.note-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--text-primary);
+  border-radius: var(--radius-full);
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+/* Floating Verse Action Toolbar */
+.verse-action-bar {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 90;
+  opacity: 0;
+  transition: all var(--transition-normal);
+}
+
+.verse-action-bar.active {
+  display: flex;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.action-bar-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-right: 8px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.highlight-color-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.color-dot:hover {
+  transform: scale(1.15);
+  border-color: var(--text-primary);
+}
+
+/* 5 Monochrome Shade Dots */
+.color-dot.yellow { background-color: #EEEEEE; }
+.color-dot.green { background-color: #CCCCCC; }
+.color-dot.blue { background-color: #777777; }
+.color-dot.purple { background-color: #333333; }
+.color-dot.rose { background-color: #000000; }
+.color-dot.clear { 
+  background-color: var(--bg-card); 
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .color-dot.yellow { background-color: #333333; }
+[data-theme="dark"] .color-dot.green { background-color: #555555; }
+[data-theme="dark"] .color-dot.blue { background-color: #888888; }
+[data-theme="dark"] .color-dot.purple { background-color: #BBBBBB; }
+[data-theme="dark"] .color-dot.rose { background-color: #FFFFFF; }
+
+.action-bar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.action-bar-btn:hover {
+  background-color: var(--mono-soft);
+  border-color: var(--text-primary);
+}
+
+/* Chapter Bottom Navigation */
+.chapter-nav-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.chapter-nav-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all var(--transition-fast);
+}
+
+.chapter-nav-card:hover {
+  border-color: var(--text-primary);
+  background-color: var(--bg-card-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.chapter-nav-card.next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.nav-direction-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.nav-chapter-target {
+  font-family: var(--font-scripture);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text-primary);
+}
