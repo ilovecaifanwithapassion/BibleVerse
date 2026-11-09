@@ -78,7 +78,7 @@
      */
     async signUp(email, password, displayName = '') {
       if (!email || !password) {
-        throw new Error('Please enter both email and password.');
+        throw new Error('Please fill in all required fields.');
       }
       if (password.length < 6) {
         throw new Error('Password must be at least 6 characters.');
@@ -107,9 +107,30 @@
       }
 
       // Local / Offline demo account creation
+      const normEmail = email.toLowerCase().trim();
+      let localAccounts = {};
+      try {
+        localAccounts = JSON.parse(localStorage.getItem('bv_local_accounts') || '{}');
+      } catch (e) {
+        localAccounts = {};
+      }
+
+      if (localAccounts[normEmail]) {
+        throw new Error('User already registered');
+      }
+
+      // Store simple hashed representation (base64 mock) for offline testing
+      localAccounts[normEmail] = {
+        email: normEmail,
+        fullName: displayName || email.split('@')[0],
+        pwHash: btoa(password),
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem('bv_local_accounts', JSON.stringify(localAccounts));
+
       const mockUser = {
         id: 'usr_' + Date.now(),
-        email: email,
+        email: normEmail,
         user_metadata: { full_name: displayName || email.split('@')[0] },
         created_at: new Date().toISOString()
       };
@@ -125,7 +146,7 @@
      */
     async signIn(email, password) {
       if (!email || !password) {
-        throw new Error('Please enter both email and password.');
+        throw new Error('Please fill in all required fields.');
       }
 
       if (window.AppDB && window.AppDB.supabase) {
@@ -141,10 +162,38 @@
         return data;
       }
 
-      // Local fallback
+      // Local fallback verification
+      const normEmail = email.toLowerCase().trim();
+      let localAccounts = {};
+      try {
+        localAccounts = JSON.parse(localStorage.getItem('bv_local_accounts') || '{}');
+      } catch (e) {
+        localAccounts = {};
+      }
+
+      // If there are registered demo accounts, check credentials
+      if (Object.keys(localAccounts).length > 0) {
+        const acc = localAccounts[normEmail];
+        if (!acc || acc.pwHash !== btoa(password)) {
+          throw new Error('Invalid login credentials');
+        }
+        const mockUser = {
+          id: 'usr_' + normEmail,
+          email: normEmail,
+          user_metadata: { full_name: acc.fullName || normEmail.split('@')[0] },
+          created_at: acc.createdAt
+        };
+        this.currentUser = mockUser;
+        localStorage.setItem('bv_local_user', JSON.stringify(mockUser));
+        window.AppDB.setCurrentUser(mockUser);
+        this.notifyListeners();
+        return { user: mockUser };
+      }
+
+      // Default demo mock user if no accounts registered yet
       const mockUser = {
         id: 'usr_' + Date.now(),
-        email: email,
+        email: normEmail,
         user_metadata: { full_name: email.split('@')[0] },
         created_at: new Date().toISOString()
       };
@@ -159,7 +208,7 @@
      * Password Reset Request
      */
     async resetPassword(email) {
-      if (!email) throw new Error('Please enter your account email.');
+      if (!email) throw new Error('Please enter a valid email address.');
       if (window.AppDB && window.AppDB.supabase) {
         const { data, error } = await window.AppDB.supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;

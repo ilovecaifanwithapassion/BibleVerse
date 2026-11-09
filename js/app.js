@@ -37,7 +37,16 @@
     },
 
     navigate(viewName, updateHash = true, scrollToTop = true) {
-      const target = document.getElementById(`view-${viewName}`);
+      // Support highlights as a direct route to bookmarks in highlights mode
+      let effectiveView = viewName;
+      let targetSavedTab = null;
+
+      if (viewName === 'highlights') {
+        effectiveView = 'bookmarks';
+        targetSavedTab = 'highlights';
+      }
+
+      const target = document.getElementById(`view-${effectiveView}`);
       if (!target) return;
 
       this.currentView = viewName;
@@ -45,13 +54,24 @@
         window.location.hash = viewName;
       }
 
+      // Close open modals and mobile sheet when navigating
+      document.querySelectorAll('.modal-backdrop.active, .mobile-sheet-backdrop.active, .mobile-sheet.active')
+        .forEach(el => el.classList.remove('active'));
+
+      // DEFENSIVE: Always guarantee document body and viewport scrolling are unlocked
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('modal-open');
+
       // Update active view class
       document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
       target.classList.add('active');
 
-      // Update nav link styles
+      // Update nav link styles across desktop and mobile
       document.querySelectorAll('.nav-link, .mobile-nav-item').forEach(link => {
-        if (link.getAttribute('data-view') === viewName) {
+        const linkView = link.getAttribute('data-view');
+        if (linkView === viewName || (viewName === 'highlights' && linkView === 'bookmarks')) {
           link.classList.add('active');
         } else {
           link.classList.remove('active');
@@ -59,12 +79,12 @@
       });
 
       // Refresh view-specific data
-      if (viewName === 'home') AppUI.refreshHome();
-      if (viewName === 'prayers') AppUI.renderPrayers();
-      if (viewName === 'plans') AppUI.renderPlans();
-      if (viewName === 'bookmarks') AppUI.renderSavedItems();
-      if (viewName === 'study') AppUI.renderStudyTools();
-      if (viewName === 'settings') AppUI.renderSettings();
+      if (effectiveView === 'home') AppUI.refreshHome();
+      if (effectiveView === 'prayers') AppUI.renderPrayers();
+      if (effectiveView === 'plans') AppUI.renderPlans();
+      if (effectiveView === 'bookmarks') AppUI.renderSavedItems(targetSavedTab || 'bookmarks');
+      if (effectiveView === 'study') AppUI.renderStudyTools();
+      if (effectiveView === 'settings') AppUI.renderSettings();
 
       // Scroll to top when requested
       if (scrollToTop) {
@@ -444,7 +464,7 @@
         // Check if highlighted
         const hl = this.reader.highlights.find(h => parseInt(h.verse, 10) === v.verse);
         if (hl) {
-          verseSpan.classList.add(`hl-${hl.color}`);
+          verseSpan.classList.add(`hl-${hl.color}`, `highlight-${hl.color}`);
         }
 
         // Verse Number
@@ -547,18 +567,33 @@
       const ch = this.reader.chapter;
 
       const verseEl = document.getElementById(`verse-${v}`);
+      const allHlClasses = [
+        'hl-yellow', 'hl-green', 'hl-blue', 'hl-pink', 'hl-purple', 'hl-orange', 'hl-rose',
+        'highlight-yellow', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-purple', 'highlight-orange', 'highlight-rose'
+      ];
 
       if (color === 'none') {
         await window.AppDB.removeHighlight(book, ch, v);
         if (verseEl) {
-          verseEl.classList.remove('hl-yellow', 'hl-green', 'hl-blue', 'hl-purple', 'hl-rose');
+          verseEl.classList.remove(...allHlClasses);
         }
+        this.reader.highlights = this.reader.highlights.filter(h =>
+          !(h.book === book && parseInt(h.chapter, 10) === parseInt(ch, 10) && parseInt(h.verse, 10) === parseInt(v, 10))
+        );
         this.showToast(`Highlight removed from verse ${v}`);
       } else {
         await window.AppDB.setHighlight(book, ch, v, color);
         if (verseEl) {
-          verseEl.classList.remove('hl-yellow', 'hl-green', 'hl-blue', 'hl-purple', 'hl-rose');
-          verseEl.classList.add(`hl-${color}`);
+          verseEl.classList.remove(...allHlClasses);
+          verseEl.classList.add(`hl-${color}`, `highlight-${color}`);
+        }
+        const existingIdx = this.reader.highlights.findIndex(h =>
+          h.book === book && parseInt(h.chapter, 10) === parseInt(ch, 10) && parseInt(h.verse, 10) === parseInt(v, 10)
+        );
+        if (existingIdx >= 0) {
+          this.reader.highlights[existingIdx].color = color;
+        } else {
+          this.reader.highlights.push({ book, chapter: parseInt(ch, 10), verse: parseInt(v, 10), color });
         }
         this.showToast(`Verse ${v} highlighted in ${color}`);
       }
@@ -1233,11 +1268,17 @@
     },
 
     // -------------------------------------------------------------------------
-    // BOOKMARKS & SAVED NOTES
+    // BOOKMARKS & SAVED NOTES & HIGHLIGHTS (DEFENSIVE SCROLL UNLOCK)
     // -------------------------------------------------------------------------
     async renderSavedItems(type = 'bookmarks') {
       const container = document.getElementById('saved-items-container');
       if (!container) return;
+
+      // Defensive scroll unlock: ensure body and viewport never get stuck
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('modal-open');
 
       const [bookmarks, notes, highlights] = await Promise.all([
         window.AppDB.getBookmarks(),
@@ -1253,102 +1294,150 @@
       document.getElementById('tab-btn-notes').classList.toggle('active', type === 'notes');
       document.getElementById('tab-btn-highlights').classList.toggle('active', type === 'highlights');
 
+      const filterInput = document.getElementById('saved-filter-input');
+      const query = (filterInput?.value || '').trim().toLowerCase();
+
       container.innerHTML = '';
 
       if (type === 'bookmarks') {
-        if (bookmarks.length === 0) {
-          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No bookmarks saved</div><div class="empty-state-desc">Click any verse while reading to bookmark it.</div></div>`;
+        let list = bookmarks;
+        if (query) {
+          list = list.filter(bm => 
+            (bm.label && bm.label.toLowerCase().includes(query)) ||
+            (bm.book && bm.book.toLowerCase().includes(query))
+          );
+        }
+
+        if (list.length === 0) {
+          const emptyDesc = query ? 'No saved bookmarks match your search query.' : 'Click any verse while reading to bookmark it.';
+          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No bookmarks found</div><div class="empty-state-desc">${emptyDesc}</div></div>`;
           return;
         }
-        bookmarks.forEach(bm => {
+
+        list.forEach(bm => {
           const item = document.createElement('div');
-          item.className = 'search-result-item';
-          item.style.display = 'flex';
-          item.style.justifyContent = 'space-between';
-          item.style.alignItems = 'center';
+          item.className = 'saved-item-card';
           item.style.cursor = 'pointer';
+          const refText = bm.label || `${bm.book} ${bm.chapter}:${bm.verse_start}`;
           item.innerHTML = `
-            <div>
-              <div class="search-result-ref">${bm.label || `${bm.book} ${bm.chapter}:${bm.verse_start}`}</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted);">Saved ${new Date(bm.created_at).toLocaleDateString()}</div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn btn-outline btn-sm" id="btn-jump-bm-${bm.id}">Read Verse</button>
-              <button class="btn-icon" style="width: 32px; height: 32px;" id="btn-del-bm-${bm.id}"><i data-lucide="trash-2"></i></button>
+            <div class="saved-item-header">
+              <div>
+                <div class="saved-item-ref">${refText}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Saved ${new Date(bm.created_at).toLocaleDateString()}</div>
+              </div>
+              <div class="saved-item-actions">
+                <button class="btn btn-outline btn-sm btn-jump-bm" id="btn-jump-bm-${bm.id}">Read Verse</button>
+                <button class="btn-icon btn-del-bm" style="width: 34px; height: 34px;" id="btn-del-bm-${bm.id}" title="Delete Bookmark"><i data-lucide="trash-2"></i></button>
+              </div>
             </div>
           `;
           const handleJump = (e) => {
             if (e) e.stopPropagation();
             AppUI.navigateToVerse(bm.book, bm.chapter, bm.verse_start || 1);
           };
-          item.querySelector(`#btn-jump-bm-${bm.id}`).onclick = handleJump;
+          const jumpBtn = item.querySelector(`#btn-jump-bm-${bm.id}`) || item.querySelector('.btn-jump-bm');
+          if (jumpBtn) jumpBtn.onclick = handleJump;
           item.onclick = handleJump;
-          item.querySelector(`#btn-del-bm-${bm.id}`).onclick = async (e) => {
-            e.stopPropagation();
-            await window.AppDB.deleteBookmark(bm.id);
-            AppUI.renderSavedItems('bookmarks');
-          };
+
+          const delBtn = item.querySelector(`#btn-del-bm-${bm.id}`) || item.querySelector('.btn-del-bm');
+          if (delBtn) {
+            delBtn.onclick = async (e) => {
+              e.stopPropagation();
+              await window.AppDB.deleteBookmark(bm.id);
+              AppUI.renderSavedItems('bookmarks');
+              AppUI.showToast(`Removed bookmark for ${bm.book} ${bm.chapter}`);
+            };
+          }
           container.appendChild(item);
         });
       } else if (type === 'notes') {
-        if (notes.length === 0) {
-          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No notes written</div><div class="empty-state-desc">Select any verse in the reader to write personal reflections.</div></div>`;
+        let list = notes;
+        if (query) {
+          list = list.filter(n =>
+            (n.book && n.book.toLowerCase().includes(query)) ||
+            (n.note_text && n.note_text.toLowerCase().includes(query))
+          );
+        }
+
+        if (list.length === 0) {
+          const emptyDesc = query ? 'No personal study notes match your search query.' : 'Select any verse in the reader to write personal reflections.';
+          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No notes found</div><div class="empty-state-desc">${emptyDesc}</div></div>`;
           return;
         }
-        notes.forEach(n => {
+
+        list.forEach(n => {
           const item = document.createElement('div');
-          item.className = 'search-result-item';
+          item.className = 'saved-item-card';
           item.style.cursor = 'pointer';
           item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: baseline;">
-              <div class="search-result-ref">${n.book} ${n.chapter}:${n.verse || ''}</div>
-              <button class="btn-icon" style="width: 28px; height: 28px;" id="btn-del-note-${n.id}"><i data-lucide="trash-2"></i></button>
+            <div class="saved-item-header">
+              <div class="saved-item-ref">${n.book} ${n.chapter}:${n.verse || ''}</div>
+              <div class="saved-item-actions">
+                <button class="btn btn-secondary btn-sm btn-jump-note" id="btn-jump-note-${n.id}">Open in Reader</button>
+                <button class="btn-icon btn-del-note" style="width: 34px; height: 34px;" id="btn-del-note-${n.id}" title="Delete Note"><i data-lucide="trash-2"></i></button>
+              </div>
             </div>
-            <p style="font-size: 0.95rem; margin: 8px 0;">${n.note_text}</p>
-            <button class="btn btn-secondary btn-sm" id="btn-jump-note-${n.id}">Open in Reader</button>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 4px 0 0;">${n.note_text}</p>
           `;
           const handleJump = (e) => {
             if (e) e.stopPropagation();
             AppUI.navigateToVerse(n.book, n.chapter, n.verse || 1);
           };
-          item.querySelector(`#btn-jump-note-${n.id}`).onclick = handleJump;
+          const jumpBtn = item.querySelector(`#btn-jump-note-${n.id}`) || item.querySelector('.btn-jump-note');
+          if (jumpBtn) jumpBtn.onclick = handleJump;
           item.onclick = handleJump;
-          item.querySelector(`#btn-del-note-${n.id}`).onclick = async (e) => {
-            e.stopPropagation();
-            await window.AppDB.deleteNote(n.id);
-            AppUI.renderSavedItems('notes');
-          };
+
+          const delBtn = item.querySelector(`#btn-del-note-${n.id}`) || item.querySelector('.btn-del-note');
+          if (delBtn) {
+            delBtn.onclick = async (e) => {
+              e.stopPropagation();
+              await window.AppDB.deleteNote(n.id);
+              AppUI.renderSavedItems('notes');
+              AppUI.showToast('Note deleted');
+            };
+          }
           container.appendChild(item);
         });
       } else if (type === 'highlights') {
-        if (highlights.length === 0) {
-          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No highlighted verses</div><div class="empty-state-desc">Choose from 5 monochrome highlight styles while reading to mark verses.</div></div>`;
+        let list = highlights;
+        if (query) {
+          list = list.filter(h =>
+            (h.book && h.book.toLowerCase().includes(query)) ||
+            (h.color && h.color.toLowerCase().includes(query))
+          );
+        }
+
+        if (list.length === 0) {
+          const emptyDesc = query ? 'No highlighted verses match your search query.' : 'Choose from 6 vibrant highlight colors while reading to mark verses.';
+          container.innerHTML = `<div class="empty-state"><div class="empty-state-title">No highlighted verses</div><div class="empty-state-desc">${emptyDesc}</div></div>`;
           return;
         }
-        highlights.forEach(h => {
+
+        list.forEach(h => {
           const item = document.createElement('div');
-          item.className = 'search-result-item';
-          item.style.display = 'flex';
-          item.style.justifyContent = 'space-between';
-          item.style.alignItems = 'center';
+          item.className = 'saved-item-card';
           item.style.cursor = 'pointer';
           item.innerHTML = `
-            <div>
-              <span class="category-pill" style="margin-right: 8px;">${h.color || 'Highlight'}</span>
-              <strong style="font-size: 1rem; color: var(--text-primary);">${h.book} ${h.chapter}:${h.verse}</strong>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <button class="btn btn-outline btn-sm" id="btn-jump-hl-${h.id}">Read Verse</button>
-              <button class="btn-icon" style="width: 32px; height: 32px;" id="btn-del-hl-${h.id}" title="Remove Highlight"><i data-lucide="trash-2"></i></button>
+            <div class="saved-item-header">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="category-pill pill-${h.color || 'yellow'}">${h.color || 'Highlight'}</span>
+                <strong class="saved-item-ref">${h.book} ${h.chapter}:${h.verse}</strong>
+              </div>
+              <div class="saved-item-actions">
+                <button class="btn btn-outline btn-sm btn-jump-hl" id="btn-jump-hl-${h.id}">Read Verse</button>
+                <button class="btn-icon btn-del-hl" style="width: 34px; height: 34px;" id="btn-del-hl-${h.id}" title="Remove Highlight"><i data-lucide="trash-2"></i></button>
+              </div>
             </div>
           `;
           const handleJump = (e) => {
             if (e) e.stopPropagation();
             AppUI.navigateToVerse(h.book, h.chapter, h.verse);
           };
-          item.querySelector(`#btn-jump-hl-${h.id}`).onclick = handleJump;
+          const jumpBtn = item.querySelector(`#btn-jump-hl-${h.id}`) || item.querySelector('.btn-jump-hl');
+          if (jumpBtn) jumpBtn.onclick = handleJump;
           item.onclick = handleJump;
-          const delBtn = item.querySelector(`#btn-del-hl-${h.id}`);
+
+          const delBtn = item.querySelector(`#btn-del-hl-${h.id}`) || item.querySelector('.btn-del-hl');
           if (delBtn) {
             delBtn.onclick = async (e) => {
               e.stopPropagation();
@@ -1464,34 +1553,196 @@
     },
 
     // -------------------------------------------------------------------------
-    // AUTH MODAL & LOGIC
+    // AUTH MODAL & ERROR HANDLING LOGIC
     // -------------------------------------------------------------------------
-    openAuthModal(mode = 'signin') {
+    openAuthModal(mode = 'signin', emailPrefill = '') {
       this.authMode = mode;
+      this._authSubmitting = false;
+
       const title = document.getElementById('auth-modal-title');
+      const submitBtnLabel = document.getElementById('btn-submit-auth-label');
       const submitBtn = document.getElementById('btn-submit-auth');
       const question = document.getElementById('auth-toggle-question');
       const toggleBtn = document.getElementById('btn-toggle-auth-mode');
       const nameGroup = document.getElementById('group-display-name');
-      const errorDiv = document.getElementById('auth-error-msg');
+      const emailGroup = document.getElementById('group-email');
+      const passwordGroup = document.getElementById('group-password');
+      const forgotBtn = document.getElementById('btn-forgot-password');
+      const passwordHint = document.getElementById('auth-password-hint');
+      const resetInfo = document.getElementById('group-reset-info');
+      const guestNotice = document.getElementById('auth-guest-notice');
+      const emailInput = document.getElementById('auth-email-input');
+      const passwordInput = document.getElementById('auth-password-input');
 
-      if (errorDiv) errorDiv.style.display = 'none';
+      // Clear any prior errors and loading states
+      this.clearAuthErrors();
+      this.setAuthLoading(false);
+
+      if (emailPrefill && emailInput) {
+        emailInput.value = emailPrefill;
+      }
 
       if (mode === 'signup') {
         if (title) title.textContent = 'Create Account';
-        if (submitBtn) submitBtn.textContent = 'Sign Up';
+        if (submitBtnLabel) submitBtnLabel.textContent = 'Sign Up';
         if (question) question.textContent = 'Already have an account?';
         if (toggleBtn) toggleBtn.textContent = 'Sign In';
         if (nameGroup) nameGroup.style.display = 'block';
+        if (emailGroup) emailGroup.style.display = 'block';
+        if (passwordGroup) passwordGroup.style.display = 'block';
+        if (forgotBtn) forgotBtn.style.display = 'none';
+        if (passwordHint) passwordHint.style.display = 'block';
+        if (resetInfo) resetInfo.style.display = 'none';
+        if (guestNotice) guestNotice.style.display = 'block';
+      } else if (mode === 'reset') {
+        if (title) title.textContent = 'Reset Password';
+        if (submitBtnLabel) submitBtnLabel.textContent = 'Send Reset Link';
+        if (question) question.textContent = 'Remember your password?';
+        if (toggleBtn) toggleBtn.textContent = 'Back to Sign In';
+        if (nameGroup) nameGroup.style.display = 'none';
+        if (emailGroup) emailGroup.style.display = 'block';
+        if (passwordGroup) passwordGroup.style.display = 'none';
+        if (forgotBtn) forgotBtn.style.display = 'none';
+        if (passwordHint) passwordHint.style.display = 'none';
+        if (resetInfo) resetInfo.style.display = 'block';
+        if (guestNotice) guestNotice.style.display = 'none';
       } else {
+        // 'signin' mode
         if (title) title.textContent = 'Sign In';
-        if (submitBtn) submitBtn.textContent = 'Sign In';
+        if (submitBtnLabel) submitBtnLabel.textContent = 'Sign In';
         if (question) question.textContent = "Don't have an account?";
         if (toggleBtn) toggleBtn.textContent = 'Create One';
         if (nameGroup) nameGroup.style.display = 'none';
+        if (emailGroup) emailGroup.style.display = 'block';
+        if (passwordGroup) passwordGroup.style.display = 'block';
+        if (forgotBtn) forgotBtn.style.display = 'inline-block';
+        if (passwordHint) passwordHint.style.display = 'none';
+        if (resetInfo) resetInfo.style.display = 'none';
+        if (guestNotice) guestNotice.style.display = 'block';
       }
 
-      this.openModal('modal-auth');
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+
+      const modalEl = document.getElementById('modal-auth');
+      if (modalEl && !modalEl.classList.contains('active')) {
+        this.openModal('modal-auth');
+      }
+    },
+
+    clearAuthErrors() {
+      // Clear banner alert
+      const banner = document.getElementById('auth-banner-alert');
+      if (banner) {
+        banner.className = 'auth-banner-alert';
+        banner.style.display = 'none';
+        const bannerText = document.getElementById('auth-banner-text');
+        if (bannerText) bannerText.textContent = '';
+      }
+
+      // Clear field errors & styles
+      ['auth-name', 'auth-email', 'auth-password'].forEach(prefix => {
+        const input = document.getElementById(`${prefix}-input`);
+        const err = document.getElementById(`${prefix}-error`);
+        if (input) input.classList.remove('input-error');
+        if (err) {
+          err.className = 'field-error-msg';
+          err.innerHTML = '';
+          err.style.display = 'none';
+        }
+      });
+
+      // Clear legacy error container
+      const legacyErr = document.getElementById('auth-error-msg');
+      if (legacyErr) legacyErr.style.display = 'none';
+    },
+
+    setAuthFieldError(inputId, errorId, message) {
+      const input = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      if (input) {
+        input.classList.add('input-error');
+      }
+      if (err) {
+        err.innerHTML = `<i data-lucide="alert-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i><span>${message}</span>`;
+        err.className = 'field-error-msg visible';
+        err.style.display = 'flex';
+      }
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    },
+
+    clearAuthFieldError(inputId, errorId) {
+      const input = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      if (input) input.classList.remove('input-error');
+      if (err) {
+        err.className = 'field-error-msg';
+        err.innerHTML = '';
+        err.style.display = 'none';
+      }
+    },
+
+    showAuthBanner(message, type = 'error') {
+      const banner = document.getElementById('auth-banner-alert');
+      const bannerText = document.getElementById('auth-banner-text');
+      const bannerIcon = document.getElementById('auth-banner-icon');
+
+      if (!banner) return;
+
+      banner.className = `auth-banner-alert alert-${type}`;
+      banner.style.display = 'flex';
+
+      if (bannerIcon) {
+        bannerIcon.innerHTML = type === 'success'
+          ? `<i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>`
+          : `<i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>`;
+      }
+      if (bannerText) {
+        bannerText.textContent = message;
+      }
+
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    },
+
+    setAuthLoading(isLoading, customLabel = '') {
+      this._authSubmitting = isLoading;
+      const submitBtn = document.getElementById('btn-submit-auth');
+      const spinner = document.getElementById('auth-btn-spinner');
+      const label = document.getElementById('btn-submit-auth-label');
+
+      if (submitBtn) {
+        submitBtn.disabled = isLoading;
+        submitBtn.classList.toggle('btn-loading', isLoading);
+      }
+      if (spinner) {
+        spinner.style.display = isLoading ? 'inline-block' : 'none';
+      }
+      if (label) {
+        if (isLoading) {
+          if (customLabel) {
+            label.textContent = customLabel;
+          } else if (this.authMode === 'signup') {
+            label.textContent = 'Creating account...';
+          } else if (this.authMode === 'reset') {
+            label.textContent = 'Sending reset link...';
+          } else {
+            label.textContent = 'Signing in...';
+          }
+        } else {
+          if (this.authMode === 'signup') {
+            label.textContent = 'Sign Up';
+          } else if (this.authMode === 'reset') {
+            label.textContent = 'Send Reset Link';
+          } else {
+            label.textContent = 'Sign In';
+          }
+        }
+      }
     },
 
     initAuthListeners() {
@@ -1502,40 +1753,212 @@
         }
         AppUI.renderSettings();
       });
+
+      // Clear field errors as user corrects them
+      const emailInput = document.getElementById('auth-email-input');
+      const passwordInput = document.getElementById('auth-password-input');
+      const nameInput = document.getElementById('auth-name-input');
+
+      emailInput?.addEventListener('input', () => {
+        if (emailInput.classList.contains('input-error')) {
+          this.clearAuthFieldError('auth-email-input', 'auth-email-error');
+        }
+      });
+      passwordInput?.addEventListener('input', () => {
+        if (passwordInput.classList.contains('input-error')) {
+          this.clearAuthFieldError('auth-password-input', 'auth-password-error');
+        }
+      });
+      nameInput?.addEventListener('input', () => {
+        if (nameInput.classList.contains('input-error')) {
+          this.clearAuthFieldError('auth-name-input', 'auth-name-error');
+        }
+      });
     },
 
     async handleAuthSubmit() {
-      const email = document.getElementById('auth-email-input').value.trim();
-      const password = document.getElementById('auth-password-input').value;
-      const name = document.getElementById('auth-name-input').value.trim();
-      const errorDiv = document.getElementById('auth-error-msg');
+      // Prevent duplicate submissions while request is processing
+      if (this._authSubmitting) return;
 
-      if (errorDiv) errorDiv.style.display = 'none';
+      const emailInput = document.getElementById('auth-email-input');
+      const passwordInput = document.getElementById('auth-password-input');
+      const nameInput = document.getElementById('auth-name-input');
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value : '';
+      const name = nameInput ? nameInput.value.trim() : '';
+
+      this.clearAuthErrors();
+
+      // Email format regex: standard compliant format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+      // 1. Validate Empty Required Fields
+      if (this.authMode === 'reset') {
+        if (!email) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please fill in all required fields.');
+          emailInput?.focus();
+          return;
+        }
+        if (!emailRegex.test(email)) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please enter a valid email address.');
+          emailInput?.focus();
+          return;
+        }
+      } else if (this.authMode === 'signin') {
+        if (!email && !password) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please fill in all required fields.');
+          this.setAuthFieldError('auth-password-input', 'auth-password-error', 'Please fill in all required fields.');
+          emailInput?.focus();
+          return;
+        }
+        if (!email) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please fill in all required fields.');
+          emailInput?.focus();
+          return;
+        }
+        if (!emailRegex.test(email)) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please enter a valid email address.');
+          emailInput?.focus();
+          return;
+        }
+        if (!password) {
+          this.setAuthFieldError('auth-password-input', 'auth-password-error', 'Please fill in all required fields.');
+          passwordInput?.focus();
+          return;
+        }
+      } else if (this.authMode === 'signup') {
+        let hasEmpty = false;
+        if (!email) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please fill in all required fields.');
+          hasEmpty = true;
+        }
+        if (!password) {
+          this.setAuthFieldError('auth-password-input', 'auth-password-error', 'Please fill in all required fields.');
+          hasEmpty = true;
+        }
+        if (hasEmpty) {
+          if (!email) emailInput?.focus();
+          else passwordInput?.focus();
+          return;
+        }
+        if (!emailRegex.test(email)) {
+          this.setAuthFieldError('auth-email-input', 'auth-email-error', 'Please enter a valid email address.');
+          emailInput?.focus();
+          return;
+        }
+        if (password.length < 6) {
+          this.setAuthFieldError('auth-password-input', 'auth-password-error', 'Password must be at least 6 characters long.');
+          passwordInput?.focus();
+          return;
+        }
+      }
+
+      // Check offline network failure upfront if browser reports offline
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        this.showAuthBanner('Unable to connect. Please check your internet connection and try again.', 'error');
+        return;
+      }
+
+      // Begin loading state
+      this.setAuthLoading(true);
 
       try {
-        if (this.authMode === 'signup') {
+        if (this.authMode === 'reset') {
+          await window.AuthService.resetPassword(email);
+          this.showAuthBanner('Password reset instructions have been sent if an account exists with that email address. Please check your inbox.', 'success');
+        } else if (this.authMode === 'signup') {
           await window.AuthService.signUp(email, password, name);
           this.showToast('Account created successfully!');
+          this.closeModal('modal-auth');
         } else {
           await window.AuthService.signIn(email, password);
           this.showToast('Signed in successfully!');
+          this.closeModal('modal-auth');
         }
-        this.closeModal('modal-auth');
       } catch (err) {
-        if (errorDiv) {
-          errorDiv.textContent = err.message;
-          errorDiv.style.display = 'block';
+        const rawMsg = err?.message || '';
+        const lowerMsg = rawMsg.toLowerCase();
+        const code = (err?.code || '').toLowerCase();
+
+        // 1. Invalid login credentials (do not clear email, do not reveal if email is registered)
+        if (
+          lowerMsg.includes('invalid login credentials') ||
+          lowerMsg.includes('invalid credentials') ||
+          lowerMsg.includes('invalid email or password') ||
+          lowerMsg.includes('user not found') ||
+          code === 'invalid_credentials' ||
+          code === 'invalid_grant'
+        ) {
+          this.showAuthBanner('Invalid email or password. Please check your credentials and try again.', 'error');
+          if (passwordInput) {
+            passwordInput.classList.add('input-error');
+          }
         }
+        // 2. Unverified email
+        else if (
+          lowerMsg.includes('email not confirmed') ||
+          lowerMsg.includes('not verified') ||
+          code === 'email_not_confirmed'
+        ) {
+          this.showAuthBanner('Please verify your email address before signing in. Check your inbox for the verification link.', 'error');
+        }
+        // 3. Network connection failure
+        else if (
+          lowerMsg.includes('failed to fetch') ||
+          lowerMsg.includes('networkerror') ||
+          lowerMsg.includes('network') ||
+          lowerMsg.includes('timeout') ||
+          lowerMsg.includes('offline') ||
+          lowerMsg.includes('load failed') ||
+          lowerMsg.includes('aborterror')
+        ) {
+          this.showAuthBanner('Unable to connect. Please check your internet connection and try again.', 'error');
+        }
+        // 4. Expired session
+        else if (
+          lowerMsg.includes('jwt expired') ||
+          lowerMsg.includes('session expired') ||
+          lowerMsg.includes('token expired') ||
+          code === 'session_expired' ||
+          code === 'invalid_token'
+        ) {
+          this.showAuthBanner('Your session has expired. Please sign in again.', 'error');
+        }
+        // 5. Weak password during registration
+        else if (
+          lowerMsg.includes('password should be at least') ||
+          lowerMsg.includes('weak_password') ||
+          lowerMsg.includes('password must be at least')
+        ) {
+          this.setAuthFieldError('auth-password-input', 'auth-password-error', 'Password must be at least 6 characters long.');
+        }
+        // 6. Existing account during registration
+        else if (
+          lowerMsg.includes('user already registered') ||
+          lowerMsg.includes('already exists') ||
+          lowerMsg.includes('already registered') ||
+          code === 'user_already_exists'
+        ) {
+          this.showAuthBanner('An account may already exist with these details. Try signing in or resetting your password.', 'error');
+        }
+        // Fallback generic error
+        else {
+          this.showAuthBanner(rawMsg || 'An unexpected error occurred. Please try again.', 'error');
+        }
+      } finally {
+        this.setAuthLoading(false);
       }
     },
 
     // -------------------------------------------------------------------------
-    // GENERAL MODAL & TOAST HELPERS
+    // GENERAL MODAL, SHEET & TOAST HELPERS
     // -------------------------------------------------------------------------
     openModal(id) {
       const el = document.getElementById(id);
       if (el) {
         el.classList.add('active');
+        document.body.classList.add('modal-open');
         document.body.style.overflow = 'hidden';
       }
     },
@@ -1544,7 +1967,37 @@
       const el = document.getElementById(id);
       if (el) {
         el.classList.remove('active');
+      }
+      // Check if any other modal or sheet is still open
+      const remaining = document.querySelectorAll('.modal-backdrop.active, .mobile-sheet.active');
+      if (remaining.length === 0) {
+        document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.documentElement.style.overflow = '';
+      }
+    },
+
+    openMobileSheet() {
+      const sheet = document.getElementById('mobile-sheet-drawer');
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (sheet) sheet.classList.add('active');
+      if (backdrop) backdrop.classList.add('active');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeMobileSheet() {
+      const sheet = document.getElementById('mobile-sheet-drawer');
+      const backdrop = document.getElementById('mobile-sheet-backdrop');
+      if (sheet) sheet.classList.remove('active');
+      if (backdrop) backdrop.classList.remove('active');
+      const remaining = document.querySelectorAll('.modal-backdrop.active');
+      if (remaining.length === 0) {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.documentElement.style.overflow = '';
       }
     },
 
@@ -1633,10 +2086,40 @@
         });
       });
 
-      // Saved items tabs
-      document.getElementById('tab-btn-bookmarks')?.addEventListener('click', () => this.renderSavedItems('bookmarks'));
-      document.getElementById('tab-btn-notes')?.addEventListener('click', () => this.renderSavedItems('notes'));
-      document.getElementById('tab-btn-highlights')?.addEventListener('click', () => this.renderSavedItems('highlights'));
+      // Saved items tabs with automatic scroll reset to beginning of content
+      document.getElementById('tab-btn-bookmarks')?.addEventListener('click', () => {
+        this.renderSavedItems('bookmarks');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      document.getElementById('tab-btn-notes')?.addEventListener('click', () => {
+        this.renderSavedItems('notes');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      document.getElementById('tab-btn-highlights')?.addEventListener('click', () => {
+        this.renderSavedItems('highlights');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // Saved items search & filter
+      document.getElementById('saved-filter-input')?.addEventListener('input', () => {
+        const activeTab = document.querySelector('#tab-btn-highlights.active') ? 'highlights' :
+          (document.querySelector('#tab-btn-notes.active') ? 'notes' : 'bookmarks');
+        this.renderSavedItems(activeTab);
+      });
+
+      // Mobile More drawer sheet triggers
+      document.getElementById('btn-mobile-more')?.addEventListener('click', () => this.openMobileSheet());
+      document.getElementById('btn-close-sheet')?.addEventListener('click', () => this.closeMobileSheet());
+      document.getElementById('mobile-sheet-backdrop')?.addEventListener('click', () => this.closeMobileSheet());
+
+      // Global keyboard handler (Escape closes modals and sheets)
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-backdrop.active').forEach(m => this.closeModal(m.id));
+          this.closeMobileSheet();
+          this.hideVerseActionBar();
+        }
+      });
 
       // Prayer modal triggers
       document.getElementById('btn-open-add-prayer')?.addEventListener('click', () => this.openNewPrayerModal());
@@ -1651,10 +2134,22 @@
           this.openAuthModal('signin');
         }
       });
+      document.getElementById('btn-forgot-password')?.addEventListener('click', () => {
+        const email = document.getElementById('auth-email-input')?.value.trim() || '';
+        this.openAuthModal('reset', email);
+      });
       document.getElementById('btn-toggle-auth-mode')?.addEventListener('click', () => {
-        this.openAuthModal(this.authMode === 'signin' ? 'signup' : 'signin');
+        if (this.authMode === 'reset') {
+          this.openAuthModal('signin');
+        } else {
+          this.openAuthModal(this.authMode === 'signin' ? 'signup' : 'signin');
+        }
       });
       document.getElementById('btn-submit-auth')?.addEventListener('click', () => this.handleAuthSubmit());
+      document.getElementById('auth-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.handleAuthSubmit();
+      });
 
       // Settings saves
       document.getElementById('btn-save-provider-settings')?.addEventListener('click', () => {

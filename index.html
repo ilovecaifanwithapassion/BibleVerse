@@ -3,10 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Bible App</title>
   <meta name="description"
     content="A peaceful, responsive Christian Bible study platform featuring New International Version (NIV) Scripture, reliable historical study tools, reading plans, and personal prayer journals.">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Bible App">
+  <link rel="manifest" href="manifest.json">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -53,6 +59,9 @@
         <a href="#bookmarks" class="nav-link" data-view="bookmarks" id="nav-bookmarks">
           <i data-lucide="bookmark" class="nav-icon"></i> Saved Notes
         </a>
+        <a href="#highlights" class="nav-link" data-view="highlights" id="nav-highlights">
+          <i data-lucide="highlighter" class="nav-icon"></i> Highlights
+        </a>
       </nav>
 
       <!-- Action Buttons -->
@@ -79,7 +88,7 @@
     <!-- 1. HOME / DAILY VERSE VIEW -->
     <section id="view-home" class="app-view active">
       <div class="container container-readable">
-        <!-- Daily Verse Hero Card -->
+        <!-- Daily Verse Hero Card (Bible.com Editorial Aesthetics) -->
         <div class="hero-verse-card">
           <div class="hero-badge">
             <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Daily Verse
@@ -117,31 +126,31 @@
         <!-- Quick Resume & Stats Bar -->
         <div
           style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 36px;">
-          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+          <div class="study-section-card" style="padding: 24px; margin-bottom: 0;">
             <div
-              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">
               Continue Reading</div>
-            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;" id="resume-position-label">Genesis 1
+            <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 12px;" id="resume-position-label">Genesis 1
             </div>
             <button class="btn btn-primary btn-sm" id="btn-resume-reading">
               <i data-lucide="arrow-right"></i> Open Reader
             </button>
           </div>
 
-          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+          <div class="study-section-card" style="padding: 24px; margin-bottom: 0;">
             <div
-              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">
               Reading Streak</div>
-            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;" id="streak-counter-label">1 Day
+            <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;" id="streak-counter-label">1 Day
               Streak</div>
-            <div style="font-size: 0.82rem; color: var(--text-muted);">Spend time in God's Word daily</div>
+            <div style="font-size: 0.86rem; color: var(--text-muted);">Spend time in God's Word daily</div>
           </div>
 
-          <div class="study-section-card" style="padding: 20px; margin-bottom: 0;">
+          <div class="study-section-card" style="padding: 24px; margin-bottom: 0;">
             <div
-              style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; margin-bottom: 4px;">
+              style="font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">
               Prayer Journal</div>
-            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;" id="home-prayers-count">0 Active
+            <div style="font-size: 1.25rem; font-weight: 800; margin-bottom: 12px;" id="home-prayers-count">0 Active
               Prayers</div>
             <button class="btn btn-secondary btn-sm" onclick="AppRouter.navigate('prayers')">
               <i data-lucide="feather"></i> Open Journal
@@ -154,7 +163,7 @@
           <div class="study-section-title">
             <i data-lucide="heart"></i> Spiritual Growth Topics
           </div>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+          <p style="color: var(--text-secondary); margin-bottom: 18px; font-size: 0.96rem;">
             Explore curated Scripture selections and reflections organized around foundational Christian themes:
           </p>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="topics-badges-list">
@@ -167,7 +176,7 @@
     <!-- 2. BIBLE READER VIEW -->
     <section id="view-reader" class="app-view">
       <div class="container container-readable reader-wrapper">
-        <!-- Controls Bar -->
+        <!-- Controls Bar (Apple Liquid Glass Dock) -->
         <div class="reader-controls-bar">
           <div class="reader-nav-group">
             <button class="btn-nav-step" id="btn-prev-chapter" title="Previous Chapter" aria-label="Previous Chapter">
@@ -212,7 +221,7 @@
           </div>
         </div>
 
-        <!-- Scripture Card -->
+        <!-- Scripture Card (Solid High-Readability Surface) -->
         <div class="scripture-card" id="scripture-container">
           <!-- Chapter Header with Document Styling -->
           <div class="chapter-header">
@@ -258,10 +267,10 @@
 
     <!-- 3. BIBLE STUDY & CROSS-REFERENCES VIEW (NO AI) -->
     <section id="view-study" class="app-view">
-      <div class="container container-readable" style="padding-top: 24px;">
-        <div style="margin-bottom: 24px;">
-          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Scripture Study & Verified Context</h1>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      <div class="container container-readable" style="padding-top: 28px;">
+        <div style="margin-bottom: 28px;">
+          <h1 style="font-size: 2rem; margin-bottom: 8px;">Scripture Study & Verified Context</h1>
+          <p style="color: var(--text-secondary); font-size: 0.98rem;">
             Explore prewritten historical backgrounds, original Hebrew and Greek terms, Matthew Henry’s commentary, and
             Treasury of Scripture Knowledge cross-references. <em>(Strictly non-AI, verified theological
               scholarship)</em>.
@@ -269,9 +278,9 @@
         </div>
 
         <!-- Book Background Selector Bar -->
-        <div class="study-section-card" style="padding: 18px 24px;">
+        <div class="study-section-card" style="padding: 20px 26px;">
           <label class="form-label">Select Book for Historical & Cultural Background:</label>
-          <select class="form-select" id="study-book-dropdown" style="max-width: 320px;">
+          <select class="form-select" id="study-book-dropdown" style="max-width: 340px;">
             <!-- Populated via JS -->
           </select>
         </div>
@@ -283,32 +292,31 @@
             <span id="study-book-name">Genesis</span>: Historical & Cultural Context
           </div>
           <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 18px;">
             <div>
-              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Author:</strong>
-              <span id="study-book-author" style="font-size: 0.95rem;">Moses</span>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Author:</strong>
+              <span id="study-book-author" style="font-size: 0.96rem;">Moses</span>
             </div>
             <div>
-              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Date of Writing:</strong>
-              <span id="study-book-date" style="font-size: 0.95rem;">c. 1446–1406 B.C.</span>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Date of Writing:</strong>
+              <span id="study-book-date" style="font-size: 0.96rem;">c. 1446–1406 B.C.</span>
             </div>
             <div>
-              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Original
-                Audience:</strong>
-              <span id="study-book-audience" style="font-size: 0.95rem;">Israelites in the wilderness</span>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Original Audience:</strong>
+              <span id="study-book-audience" style="font-size: 0.96rem;">Israelites in the wilderness</span>
             </div>
             <div>
-              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block;">Literary Genre:</strong>
-              <span id="study-book-genre" style="font-size: 0.95rem;">Theological Narrative</span>
+              <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Literary Genre:</strong>
+              <span id="study-book-genre" style="font-size: 0.96rem;">Theological Narrative</span>
             </div>
           </div>
-          <div style="margin-bottom: 14px;">
-            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 2px;">Central
+          <div style="margin-bottom: 16px;">
+            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 4px;">Central
               Purpose:</strong>
-            <p id="study-book-purpose" style="font-size: 0.95rem; color: var(--text-secondary);"></p>
+            <p id="study-book-purpose" style="font-size: 0.96rem; color: var(--text-secondary); line-height: 1.6;"></p>
           </div>
           <div>
-            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 4px;">Major
+            <strong style="font-size: 0.85rem; color: var(--text-primary); display: block; margin-bottom: 8px;">Major
               Themes:</strong>
             <div id="study-book-themes" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
           </div>
@@ -319,7 +327,7 @@
           <div class="study-section-title">
             <i data-lucide="languages"></i> Biblical Languages (Hebrew & Greek Lexicon)
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+          <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 18px;">
             Key biblical terms defined using Strong's Concordance numbering, root morphology, and theological
             significance.
           </p>
@@ -333,7 +341,7 @@
           <div class="study-section-title">
             <i data-lucide="git-fork"></i> Treasury of Scripture Knowledge Cross-References
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+          <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 18px;">
             Connections between Old Testament prophetic promises and New Testament fulfillments.
           </p>
           <div id="cross-references-container" style="display: flex; flex-direction: column; gap: 16px;">
@@ -356,7 +364,7 @@
           <div class="study-section-title">
             <i data-lucide="scales"></i> Perspectives on Christian Interpretation
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+          <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 18px;">
             Fair and balanced overview of major orthodox interpretive frameworks in church history:
           </p>
           <div id="theological-topics-container">
@@ -368,10 +376,10 @@
 
     <!-- 4. READING PLANS VIEW -->
     <section id="view-plans" class="app-view">
-      <div class="container" style="padding-top: 24px;">
-        <div style="margin-bottom: 24px;">
-          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Structured Reading Plans</h1>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      <div class="container" style="padding-top: 28px;">
+        <div style="margin-bottom: 28px;">
+          <h1 style="font-size: 2rem; margin-bottom: 8px;">Structured Reading Plans</h1>
+          <p style="color: var(--text-secondary); font-size: 0.98rem;">
             Follow structured daily reading paths through books of the Bible or focused spiritual topics to foster
             consistency and growth.
           </p>
@@ -387,7 +395,7 @@
             <div class="modal-header">
               <div>
                 <h3 class="modal-title" id="plan-detail-title">Plan Name</h3>
-                <span id="plan-detail-meta" style="font-size: 0.82rem; color: var(--text-muted);">21 Days</span>
+                <span id="plan-detail-meta" style="font-size: 0.84rem; color: var(--text-muted); font-weight: 600;">21 Days</span>
               </div>
               <button class="btn-icon" onclick="AppUI.closeModal('plan-detail-modal')"><i data-lucide="x"></i></button>
             </div>
@@ -401,12 +409,12 @@
 
     <!-- 5. PRAYER JOURNAL VIEW -->
     <section id="view-prayers" class="app-view">
-      <div class="container" style="padding-top: 24px;">
+      <div class="container" style="padding-top: 28px;">
         <div
-          style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+          style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
           <div>
-            <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Personal Prayer Journal</h1>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 8px;">Personal Prayer Journal</h1>
+            <p style="color: var(--text-secondary); font-size: 0.98rem;">
               Bring your petitions and thanksgivings before God. Track answered prayers as lasting monuments of His
               faithfulness.
             </p>
@@ -433,17 +441,18 @@
       </div>
     </section>
 
-    <!-- 6. BOOKMARKS & NOTES VIEW -->
+    <!-- 6. BOOKMARKS, PERSONAL NOTES & HIGHLIGHTS VIEW -->
     <section id="view-bookmarks" class="app-view">
-      <div class="container container-readable" style="padding-top: 24px;">
+      <div class="container container-readable" style="padding-top: 28px;">
         <div style="margin-bottom: 24px;">
-          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Saved Bookmarks & Personal Notes</h1>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">
-            Access all your marked Scripture verses and reflections across the Old and New Testaments.
+          <h1 style="font-size: 2rem; margin-bottom: 8px;" id="saved-section-title">Saved Scripture & Highlights</h1>
+          <p style="color: var(--text-secondary); font-size: 0.98rem;">
+            Access all your marked Scripture verses, color highlights, and personal study reflections.
           </p>
         </div>
 
-        <div class="prayer-tabs">
+        <!-- Filter Tabs -->
+        <div class="prayer-tabs" style="margin-bottom: 20px;">
           <button class="prayer-tab-btn active" id="tab-btn-bookmarks">Bookmarks (<span
               id="count-bookmarks">0</span>)</button>
           <button class="prayer-tab-btn" id="tab-btn-notes">Personal Notes (<span id="count-notes">0</span>)</button>
@@ -451,7 +460,14 @@
               id="count-highlights">0</span>)</button>
         </div>
 
-        <div id="saved-items-container" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Saved Items Search & Filter -->
+        <div style="margin-bottom: 20px;">
+          <input type="text" class="form-input" id="saved-filter-input"
+            placeholder="Search within saved verses, notes, or books..." style="padding: 10px 16px; font-size: 0.92rem;">
+        </div>
+
+        <!-- Saved Items Container (Smooth scrolling guaranteed) -->
+        <div id="saved-items-container">
           <!-- Injected via JS -->
         </div>
       </div>
@@ -459,10 +475,10 @@
 
     <!-- 7. SETTINGS & PROFILE VIEW -->
     <section id="view-settings" class="app-view">
-      <div class="container container-readable" style="padding-top: 24px;">
-        <div style="margin-bottom: 24px;">
-          <h1 style="font-size: 1.8rem; margin-bottom: 6px;">Settings & Account</h1>
-          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+      <div class="container container-readable" style="padding-top: 28px;">
+        <div style="margin-bottom: 28px;">
+          <h1 style="font-size: 2rem; margin-bottom: 8px;">Settings & Account</h1>
+          <p style="color: var(--text-secondary); font-size: 0.98rem;">
             Configure your reading preferences, Supabase database synchronization, and Scripture data providers.
           </p>
         </div>
@@ -482,7 +498,7 @@
           <div class="study-section-title">
             <i data-lucide="database"></i> Scripture Data Provider
           </div>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
             NIV Scripture can be loaded from the configured GitHub source or connected to an authorized licensed API
             provider.
           </p>
@@ -506,7 +522,7 @@
           <div class="study-section-title">
             <i data-lucide="cloud"></i> Supabase Database Synchronization
           </div>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 14px;">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
             Connect your own Supabase project URL and Anon Key to enable multi-device synchronization with PostgreSQL
             Row-Level Security.
           </p>
@@ -520,7 +536,7 @@
             <input type="password" class="form-input" id="setting-supabase-key"
               placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
           </div>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-primary btn-sm" id="btn-save-supabase-config">Save Credentials & Connect</button>
             <button class="btn btn-secondary btn-sm" id="btn-clear-supabase-config">Clear & Return to Guest</button>
           </div>
@@ -555,7 +571,7 @@
   </main>
 
   <!-- =========================================================================
-       FLOATING ACTION PALETTE (ON VERSE CLICK)
+       FLOATING VERSE ACTION TOOLBAR (APPLE LIQUID GLASS DOCK)
        ========================================================================= -->
   <div class="verse-action-bar" id="verse-action-bar">
     <span class="action-bar-label" id="action-bar-verse-ref">John 3:16</span>
@@ -563,8 +579,9 @@
       <div class="color-dot yellow" data-color="yellow" title="Highlight Yellow"></div>
       <div class="color-dot green" data-color="green" title="Highlight Green"></div>
       <div class="color-dot blue" data-color="blue" title="Highlight Blue"></div>
+      <div class="color-dot pink" data-color="pink" title="Highlight Pink"></div>
       <div class="color-dot purple" data-color="purple" title="Highlight Purple"></div>
-      <div class="color-dot rose" data-color="rose" title="Highlight Rose"></div>
+      <div class="color-dot orange" data-color="orange" title="Highlight Orange"></div>
       <div class="color-dot clear" data-color="none" title="Remove Highlight">✕</div>
     </div>
     <button class="action-bar-btn" id="action-btn-custom-title"><i data-lucide="heading"></i> Title</button>
@@ -604,7 +621,7 @@
             <button class="btn btn-secondary btn-sm" id="btn-back-to-books">
               <i data-lucide="arrow-left"></i> Back to Books
             </button>
-            <h4 id="picker-selected-book-name" style="color: var(--text-primary); font-size: 1.1rem; font-weight: 700;">
+            <h4 id="picker-selected-book-name" style="color: var(--text-primary); font-size: 1.15rem; font-weight: 800;">
               Genesis</h4>
           </div>
           <div class="chapters-grid" id="picker-chapters-grid">
@@ -627,9 +644,9 @@
           <input type="text" class="form-input" id="search-input"
             placeholder="Type a reference (e.g. John 3:16, Romans 8) or keyword (peace, shepherd)..." autofocus>
         </div>
-        <div id="search-hints" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+        <div id="search-hints" style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 14px;">
           Try references like: <strong>John 3:16</strong>, <strong>Romans 8:28</strong>, <strong>Psalm 23</strong>, or
-          search words like <em>"grace"</em>, <em>"anxiety"</em>, <em>"love"</em>.
+          search words like <em>"grace"</em>, <em>"peace"</em>, <em>"love"</em>.
         </div>
         <div id="search-results-container" class="search-results-list">
           <!-- Search results here -->
@@ -647,7 +664,7 @@
       </div>
       <div class="modal-body">
         <div
-          style="background-color: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px; font-family: var(--font-scripture); font-size: 0.92rem;"
+          style="background-color: var(--bg-secondary); padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 18px; font-family: var(--font-scripture); font-size: 0.94rem; border-left: 3px solid var(--text-primary);"
           id="note-verse-preview">
           "For God so loved the world..."
         </div>
@@ -723,7 +740,7 @@
     </div>
   </div>
 
-  <!-- 6. Auth Modal (Sign in / Sign up) -->
+  <!-- 6. Auth Modal (Sign in / Sign up / Forgot Password) -->
   <div class="modal-backdrop" id="modal-auth">
     <div class="modal-dialog" style="max-width: 440px;">
       <div class="modal-header">
@@ -731,36 +748,66 @@
         <button class="btn-icon" onclick="AppUI.closeModal('modal-auth')"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">
-        <div
+        <div id="auth-guest-notice"
           style="background-color: var(--mono-soft); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-primary); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
-          <i data-lucide="info" style="width: 16px; height: 16px; vertical-align: middle;"></i>
-          <strong>Guest Mode Active:</strong> You can read, highlight, bookmark, and journal freely without signing in.
-          Creating an account syncs your data across devices.
+          <i data-lucide="info" style="width: 15px; height: 15px; vertical-align: middle; margin-right: 4px;"></i>
+          <strong>Guest Mode Active:</strong> You can read and study freely. Create an account to sync highlights, notes, and reading plans across devices.
         </div>
 
-        <form id="auth-form" onsubmit="return false;">
+        <!-- Top-level Auth Alert Banner (Incorrect credentials, unverified email, network failure, etc.) -->
+        <div class="auth-banner-alert" id="auth-banner-alert" role="alert" aria-live="polite">
+          <span class="auth-banner-icon" id="auth-banner-icon"></span>
+          <span id="auth-banner-text"></span>
+        </div>
+
+        <form id="auth-form" onsubmit="return false;" novalidate>
+          <!-- Password Reset Instructions Description -->
+          <div id="group-reset-info" style="display: none; margin-bottom: 16px;">
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+              Enter the email address associated with your account and we will send you password reset instructions.
+            </p>
+          </div>
+
+          <!-- Display Name (Sign Up only) -->
           <div class="form-group" id="group-display-name" style="display: none;">
-            <label class="form-label">Full Name / Display Name:</label>
-            <input type="text" class="form-input" id="auth-name-input" placeholder="Your name">
+            <label class="form-label" for="auth-name-input">Full Name / Display Name:</label>
+            <input type="text" class="form-input" id="auth-name-input" placeholder="Your name" autocomplete="name">
+            <div class="field-error-msg" id="auth-name-error"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Email Address:</label>
-            <input type="email" class="form-input" id="auth-email-input" placeholder="you@example.com" required>
+
+          <!-- Email Address (All modes) -->
+          <div class="form-group" id="group-email">
+            <label class="form-label" for="auth-email-input">Email Address:</label>
+            <input type="email" class="form-input" id="auth-email-input" placeholder="you@example.com" autocomplete="email" required>
+            <div class="field-error-msg" id="auth-email-error"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Password:</label>
-            <input type="password" class="form-input" id="auth-password-input" placeholder="••••••••" required>
+
+          <!-- Password (Sign In & Sign Up only) -->
+          <div class="form-group" id="group-password">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="form-label" for="auth-password-input" style="margin-bottom: 0;">Password:</label>
+              <button type="button" id="btn-forgot-password" style="background: none; border: none; font-size: 0.82rem; color: var(--text-secondary); text-decoration: underline; cursor: pointer; padding: 0;">Forgot Password?</button>
+            </div>
+            <input type="password" class="form-input" id="auth-password-input" placeholder="••••••••" autocomplete="current-password" required>
+            <div class="field-error-msg" id="auth-password-error"></div>
+            <div id="auth-password-hint" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; display: none;">
+              Password must be at least 6 characters long.
+            </div>
           </div>
-          <div id="auth-error-msg"
-            style="color: var(--text-primary); font-weight: 700; border: 1px solid var(--border-strong); padding: 8px 12px; font-size: 0.85rem; margin-bottom: 12px; display: none;">
-          </div>
-          <button type="submit" class="btn btn-primary" id="btn-submit-auth"
-            style="width: 100%; margin-bottom: 12px;">Sign In</button>
+
+          <!-- Backward compatibility error msg container -->
+          <div id="auth-error-msg" style="display: none;"></div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary" id="btn-submit-auth" style="width: 100%; margin-top: 6px; margin-bottom: 14px;">
+            <span class="btn-spinner" id="auth-btn-spinner" style="display: none;"></span>
+            <span id="btn-submit-auth-label">Sign In</span>
+          </button>
         </form>
 
-        <div style="text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+        <div style="text-align: center; font-size: 0.88rem; color: var(--text-secondary);">
           <span id="auth-toggle-question">Don't have an account?</span>
-          <button style="color: var(--text-primary); font-weight: 700; text-decoration: underline; margin-left: 4px;"
+          <button type="button" style="background: none; border: none; color: var(--text-primary); font-weight: 700; text-decoration: underline; margin-left: 4px; cursor: pointer;"
             id="btn-toggle-auth-mode">Create One</button>
         </div>
       </div>
@@ -776,7 +823,7 @@
       </div>
       <div class="modal-body">
         <div
-          style="background-color: var(--bg-secondary); padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;"
+          style="background-color: var(--bg-secondary); padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; border-left: 3px solid var(--text-primary);"
           id="title-verse-preview">
           Adding section title to verse...
         </div>
@@ -793,11 +840,33 @@
     </div>
   </div>
 
+  <!-- 8. About & Scripture Licensing Modal -->
+  <div class="modal-backdrop" id="modal-about">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">About & Copyright</h3>
+        <button class="btn-icon" onclick="AppUI.closeModal('modal-about')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.65;">
+        <h4 style="color: var(--text-primary); margin-bottom: 6px;">Bible App</h4>
+        <p style="margin-bottom: 16px;">A peaceful, distraction-free Bible reading experience featuring the New International Version (NIV), personal prayer journal, and study resources.</p>
+
+        <h4 style="color: var(--text-primary); margin-bottom: 6px;">Scripture Quotation Notice</h4>
+        <div style="background-color: var(--bg-secondary); padding: 14px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+          Scripture quotations taken from the Holy Bible, New International Version®, NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission of Zondervan. All rights reserved worldwide.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="AppUI.closeModal('modal-about')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- =========================================================================
-       MOBILE BOTTOM NAVIGATION
+       MOBILE BOTTOM NAVIGATION (5-TAB CLEAN TOUCH DOCK)
        ========================================================================= -->
   <nav class="mobile-nav" aria-label="Mobile Navigation">
     <a href="#home" class="mobile-nav-item active" data-view="home">
@@ -808,39 +877,69 @@
       <i data-lucide="book-open" class="mobile-nav-icon"></i>
       <span>Reader</span>
     </a>
-    <a href="#study" class="mobile-nav-item" data-view="study">
-      <i data-lucide="compass" class="mobile-nav-icon"></i>
-      <span>Study</span>
-    </a>
     <a href="#plans" class="mobile-nav-item" data-view="plans">
       <i data-lucide="calendar" class="mobile-nav-icon"></i>
       <span>Plans</span>
-    </a>
-    <a href="#prayers" class="mobile-nav-item" data-view="prayers">
-      <i data-lucide="feather" class="mobile-nav-icon"></i>
-      <span>Prayers</span>
     </a>
     <a href="#bookmarks" class="mobile-nav-item" data-view="bookmarks">
       <i data-lucide="bookmark" class="mobile-nav-icon"></i>
       <span>Saved</span>
     </a>
+    <button class="mobile-nav-item" id="btn-mobile-more" aria-label="Open More Options">
+      <i data-lucide="more-horizontal" class="mobile-nav-icon"></i>
+      <span>More</span>
+    </button>
   </nav>
 
   <!-- =========================================================================
-       FOOTER & LEGAL COPYRIGHT ATTRIBUTION
+       MOBILE "MORE" SECONDARY DRAWER / SHEET
+       ========================================================================= -->
+  <div class="mobile-sheet-backdrop" id="mobile-sheet-backdrop"></div>
+  <div class="mobile-sheet" id="mobile-sheet-drawer">
+    <div class="sheet-handle-bar"></div>
+    <div class="sheet-header">
+      <h3 class="sheet-title">More Bible Features</h3>
+      <button class="btn-icon" id="btn-close-sheet" aria-label="Close menu"><i data-lucide="x"></i></button>
+    </div>
+    <div class="sheet-grid">
+      <a href="#study" class="sheet-card-btn" data-view="study" onclick="AppUI.closeMobileSheet()">
+        <div class="sheet-card-icon"><i data-lucide="compass"></i></div>
+        <span>Study & Context</span>
+      </a>
+      <a href="#prayers" class="sheet-card-btn" data-view="prayers" onclick="AppUI.closeMobileSheet()">
+        <div class="sheet-card-icon"><i data-lucide="feather"></i></div>
+        <span>Prayer Journal</span>
+      </a>
+      <a href="#highlights" class="sheet-card-btn" data-view="highlights" onclick="AppUI.closeMobileSheet()">
+        <div class="sheet-card-icon"><i data-lucide="highlighter"></i></div>
+        <span>Highlights</span>
+      </a>
+      <a href="#settings" class="sheet-card-btn" data-view="settings" onclick="AppUI.closeMobileSheet()">
+        <div class="sheet-card-icon"><i data-lucide="settings"></i></div>
+        <span>Settings & Sync</span>
+      </a>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+      <button class="btn btn-secondary btn-sm" id="sheet-search-btn" style="flex: 1;" onclick="AppUI.closeMobileSheet(); AppUI.openSearchModal();">
+        <i data-lucide="search"></i> Search Scripture
+      </button>
+      <button class="btn btn-secondary btn-sm" id="sheet-theme-btn" style="flex: 1;" onclick="AppUI.toggleTheme();">
+        <i data-lucide="moon"></i> Toggle Theme
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MINIMAL APPLICATION FOOTER
        ========================================================================= -->
   <footer class="site-footer">
     <div class="container footer-content">
-      <div class="copyright-box">
-        <strong>Scripture Quotation Notice:</strong><br>
-        Scripture quotations taken from the Holy Bible, New International Version®, NIV®.
-        Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission of Zondervan. All rights reserved
-        worldwide.
+      <div class="footer-links">
+        <a href="#about" class="footer-link" onclick="AppUI.openModal('modal-about'); return false;">About & NIV® Copyright</a>
+        <span class="footer-sep">•</span>
+        <a href="#settings" class="footer-link" onclick="AppRouter.navigate('settings'); return false;">Settings</a>
       </div>
-      <div>
-        <p>Built for thoughtful reading, biblical context, and spiritual growth. Strictly non-AI commentary & verified
-          scholarship.</p>
-      </div>
+      <div class="footer-copy">© Bible App • New International Version (NIV)</div>
     </div>
   </footer>
 
